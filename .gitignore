@@ -1,0 +1,23 @@
+.env
+.env.local
+
+# Docker
+docker-compose.override.yml
+*.log
+mysql_data/
+grafana_data/
+
+# VSCode
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Node
+node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.pyc

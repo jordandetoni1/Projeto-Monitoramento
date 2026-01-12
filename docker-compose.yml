@@ -1,0 +1,74 @@
+version: '3.7'
+
+services:
+  mysql:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - monitoring_net
+
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:latest
+    depends_on:
+      - mysql
+    environment:
+      - DB_SERVER_HOST=${ZBX_DB_HOST}
+      - MYSQL_DATABASE=${ZBX_DB_NAME}
+      - MYSQL_USER=${ZBX_DB_USER}
+      - MYSQL_PASSWORD=${ZBX_DB_PASSWORD}
+    ports:
+      - "10051:10051"
+    networks:
+      - monitoring_net
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-mysql:alpine-5.0-latest
+    depends_on:
+      - zabbix-server
+      - mysql
+    environment:
+      - DB_SERVER_HOST=${ZBX_DB_HOST}
+      - MYSQL_DATABASE=${ZBX_DB_NAME}
+      - MYSQL_USER=${ZBX_DB_USER}
+      - MYSQL_PASSWORD=${ZBX_DB_PASSWORD}
+      - ZBX_SERVER_HOST=zabbix-server
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring_net
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring_net
+
+  monitor-service:
+    build: ./monitor
+    depends_on:
+      - zabbix-server
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "5000:5000"
+    networks:
+      - monitoring_net
+
+networks:
+  monitoring_net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  grafana_data:
