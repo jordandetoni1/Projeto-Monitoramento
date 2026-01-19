@@ -1,0 +1,5 @@
+# Update this list with the official credentials.
+# You can store either plain text or a Werkzeug password hash (pbkdf2, scrypt, ...).
+users:
+  - username: admin
+    password: admin123
